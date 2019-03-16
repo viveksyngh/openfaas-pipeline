@@ -1,0 +1,11 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  minio-webhook-hanlder:
+    lang: go
+    handler: ./minio-webhook-hanlder
+    image: viveksyngh/minio-webhook-hanlder:latest
+    environment:
+      combine_output: false
