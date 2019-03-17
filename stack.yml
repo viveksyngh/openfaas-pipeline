@@ -3,6 +3,10 @@ provider:
   gateway: http://127.0.0.1:8080
 
 functions:
+  image-resizer:
+    lang: node
+    handler: ./image-resizer
+    image: viveksyngh/image-resizer:latest
   json-uploader:
     lang: go
     handler: ./json-uploader
