@@ -7,6 +7,12 @@ functions:
     lang: go
     handler: ./json-uploader
     image: viveksyngh/json-uploader:latest
+    secrets:
+      - s3-access-key
+      - s3-secret-key
+    environment:
+      s3_url: "minio:9000"
+      bucket: "inception"
   minio-webhook-hanlder:
     lang: go
     handler: ./minio-webhook-hanlder
