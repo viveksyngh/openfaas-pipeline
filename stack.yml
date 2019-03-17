@@ -17,3 +17,5 @@ functions:
     lang: go
     handler: ./minio-webhook-hanlder
     image: viveksyngh/minio-webhook-hanlder:latest
+    environment:
+      combine_output: false
