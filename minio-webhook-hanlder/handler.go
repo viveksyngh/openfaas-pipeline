@@ -38,6 +38,7 @@ func Handle(req []byte) string {
 	err = invokeInception(bucket, objectName)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Error: "+err.Error())
+		return err.Error()
 	}
 
 	requestBody := RequestBody{
@@ -45,6 +46,11 @@ func Handle(req []byte) string {
 		ObjectKey: objectName,
 	}
 	requestBytes, _ := json.Marshal(requestBody)
+	err = invokeImageResizer(requestBytes)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error: "+err.Error())
+		return err.Error()
+	}
 
 	return fmt.Sprintf("Hello, Go. You said: %s", string(requestBytes))
 }
@@ -80,6 +86,30 @@ func invokeInception(bucket, objectKeystring string) error {
 		return err
 	}
 
-	fmt.Fprintln(os.Stderr, "Success: "+res.Status)
+	fmt.Fprintln(os.Stderr, "Inception Success: "+res.Status)
+	return nil
+}
+
+func invokeImageResizer(reqBytes []byte) error {
+	gatewayHostname := os.Getenv("gateway_url")
+	if gatewayHostname == "" {
+		gatewayHostname = "gateway:8080"
+	}
+
+	imageResizerFnURL := fmt.Sprintf("http://%s/async-function/image-resizer", gatewayHostname)
+
+	reader := bytes.NewReader(reqBytes)
+	client := http.Client{}
+	request, err := http.NewRequest("POST", imageResizerFnURL, reader)
+	if err != nil {
+		return err
+	}
+
+	res, err := client.Do(request)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintln(os.Stderr, "Image Resizer Success: "+res.Status)
 	return nil
 }
