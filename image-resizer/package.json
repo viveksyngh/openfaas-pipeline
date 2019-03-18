@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "minio": "^7.0.5"
+    "minio": "^7.0.5",
+    "sharp": "^0.21.3"
   }
 }

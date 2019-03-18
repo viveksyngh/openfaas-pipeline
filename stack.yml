@@ -7,6 +7,11 @@ functions:
     lang: node
     handler: ./image-resizer
     image: viveksyngh/image-resizer:latest
+    secrets:
+      - s3-access-key
+      - s3-secret-key
+    environment:
+      combine_output: false
   json-uploader:
     lang: go
     handler: ./json-uploader
