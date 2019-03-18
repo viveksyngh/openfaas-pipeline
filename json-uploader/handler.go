@@ -77,7 +77,7 @@ func Handle(req []byte) string {
 		return err.Error()
 	}
 
-	jsonBytes, err := json.Marshal(requestJSON)
+	jsonBytes, err := json.MarshalIndent(requestJSON, "", "    ")
 	filePath := "/tmp/" + fileName
 
 	file, err := os.Create(filePath)
