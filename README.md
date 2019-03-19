@@ -41,3 +41,49 @@ docker service update minio --publish-add 9000:9000
 ```sh
 mc config host add minio http://127.0.0.1:9000 $ACCESS_KEY $SECRET_KEY
 ```
+
+##### Get minio config and edit the JSON to add webhook handler
+```sh
+mc admin config get minio > myconfig.json
+```
+edit webhook section of `myconfig.json` and save it
+```json
+"webhook":{
+    "1":{
+        "enable":true,
+        "endpoint":"http://<gateway-ip>:8080/function/minio-webhook-hanlder"
+        }
+    }
+}
+```
+
+##### Update minio config and restart mino server
+Update the mini config and restart minio server
+```sh
+mc admin config set minio < myconfig.json
+```
+
+```sh
+mc admin service restart minio
+```
+
+##### Add event for the webhook
+```sh
+mc event add minio/images arn:minio:sqs::1:webhook --event put --suffix .jpg
+```
+
+##### Create required buckets
+```sh
+mc mb minio/images
+```
+```sh
+mc mb minio/images-thumbnail
+```
+```sh
+mc mb minio/inception
+```
+
+##### Change `images` bucket policy to public so that inception function can download the image without secret
+```sh
+mc policy public minio/images
+```
