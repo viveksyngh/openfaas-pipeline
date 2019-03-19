@@ -1,7 +1,6 @@
 # OpenFaas Pipeline
 Event driven pipeline using OpenFaaS, Minio and Tensorflow inception
 
-
 ## Deploy minio and configure webhook
 
 ### Docker swarm
@@ -35,6 +34,6 @@ docker service update minio --publish-add 9000:9000
 ``` 
 
 ##### Configure minio client
-````sh
+```sh
 mc config host add minio http://127.0.0.1:9000 $ACCESS_KEY $SECRET_KEY
 ```
