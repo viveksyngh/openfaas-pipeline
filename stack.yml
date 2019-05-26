@@ -12,6 +12,7 @@ functions:
       - s3-secret-key
     environment:
       combine_output: false
+      s3_url: cloud-minio.openfaas.svc.cluster.local:9000
   json-uploader:
     lang: go
     handler: ./json-uploader
@@ -20,7 +21,7 @@ functions:
       - s3-access-key
       - s3-secret-key
     environment:
-      s3_url: "minio:9000"
+      s3_url: cloud-minio.openfaas.svc.cluster.local:9000
       bucket: "inception"
   minio-webhook-hanlder:
     lang: go
@@ -28,3 +29,4 @@ functions:
     image: viveksyngh/minio-webhook-hanlder:latest
     environment:
       combine_output: false
+      gateway_url: gateway.openfaas:8080
