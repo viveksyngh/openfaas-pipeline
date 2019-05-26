@@ -12,7 +12,7 @@ functions:
       - s3-secret-key
     environment:
       combine_output: false
-      s3_url: cloud-minio.openfaas.svc.cluster.local:9000
+      s3_url: cloud-minio.openfaas.svc.cluster.local
   json-uploader:
     lang: go
     handler: ./json-uploader
@@ -30,3 +30,5 @@ functions:
     environment:
       combine_output: false
       gateway_url: gateway.openfaas:8080
+      s3_url: cloud-minio.openfaas.svc.cluster.local:9000
+
