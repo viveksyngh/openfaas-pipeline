@@ -29,26 +29,26 @@ module.exports = (context, callback) => {
     var objectKey = parsedContext.objectKey;
     console.error(bucket, objectKey)
 
-    mc.getObject(bucket, 
-            objectKey,
-            function(err, data) {
-                if (err) {
-                    console.error(err);
-                    callback(undefined, {status: "failed", message: err.toString()});
-                }
-                var reiszedFileName = objectKey.split('.')[0] + "-40x40.jpg"
-                
-                mc.putObject(destinationBucket, 
-                            reiszedFileName, 
-                            data.pipe(transformer),
-                            imageType,
-                            function(err, etag){
-                                if (err) {
-                                    console.error(err);
-                                    callback(undefined, {status: "fail", message: err.toString()});
-                                }
+    mc.getObject(bucket,
+        objectKey,
+        function (err, data) {
+            if (err) {
+                console.error(err);
+                callback(undefined, { status: "failed", message: err.toString() });
+            }
+            var reiszedFileName = objectKey.split('.')[0] + "-40x40.jpg"
 
-                                callback(undefined, {status: "success", message: "Successfully resized and uploded"});
-                            });
-    });
+            mc.putObject(destinationBucket,
+                reiszedFileName,
+                data.pipe(transformer),
+                imageType,
+                function (err, etag) {
+                    if (err) {
+                        console.error(err);
+                        callback(undefined, { status: "fail", message: err.toString() });
+                    }
+
+                    callback(undefined, { status: "success", message: "Successfully resized and uploded" });
+                });
+        });
 }
