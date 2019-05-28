@@ -32,4 +32,11 @@ functions:
       combine_output: false
       gateway_url: gateway.openfaas:8080
       s3_url: cloud-minio.openfaas.svc.cluster.local:9000
-
+  inception:
+    lang: dockerfile
+    handler: ./function
+    image: alexellis/inception:2019-02-17
+    fprocess: "python3 index.py"
+    environment:
+      read_timeout: "60"
+      write_timeout: "60"
