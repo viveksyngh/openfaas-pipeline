@@ -7,6 +7,131 @@ Event driven pipeline using OpenFaaS, Minio and Tensorflow inception
 
 ## Deploy minio and configure webhook
 
+### Kubernetes
+
+#### Install Helm 
+
+##### Install Helm CLI Client
+
+* On Linux and Mac/Darwin
+```
+curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+```
+
+* On Mac Via Homebrew 
+```
+brew install kubernetes-helm 
+```
+
+#### Install Tiller
+
+* Create RBAC permissions for tiller
+```
+kubectl -n kube-system create sa tiller \
+  && kubectl create clusterrolebinding tiller \
+  --clusterrole cluster-admin \
+  --serviceaccount=kube-system:tiller
+```
+
+* Install the server-side Tiller component on your cluster
+```
+helm init --skip-refresh --upgrade --service-account tiller
+```
+
+#### Install and Configure minio
+
+* Create OpenFaaS namespaces
+```
+kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
+```
+
+* Generate secrets for Minio
+```
+SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+
+* Create Secrets in kubernetes
+```
+kubectl create secret generic -n openfaas-fn \
+ s3-secret-key --from-literal s3-secret-key="$SECRET_KEY"
+```
+
+```
+kubectl create secret generic -n openfaas-fn \
+ s3-access-key --from-literal s3-access-key="$ACCESS_KEY"
+```
+
+* Install minio with helm chart
+```
+helm install --name cloud-minio \
+    --namespace openfaas \
+    --set accessKey=$ACCESS_KEY,
+            secretKey=$SECRET_KEY,
+            replicas=1,
+            persistence.enabled=false,
+            service.port=9000,
+            service.type=NodePort \
+    stable/minio
+```
+
+* Get Minio NodePort
+
+```
+MINIO_PORT=$(kubectl get svc/cloud-minio -n openfaas --output=jsonpath='{.spec.ports[?(@.name=="service")].nodePort}')
+``` 
+
+* Configure minio client
+```sh
+mc config host add minio-kube http://127.0.0.1:$MINIO_PORT $ACCESS_KEY $SECRET_KEY
+```
+
+* Get minio config and edit the JSON to add webhook handler
+```sh
+mc admin config get minio-kube > myconfig.json
+```
+edit webhook section of `myconfig.json` and save it
+```json
+"webhook":{
+    "1":{
+        "enable":true,
+        "endpoint":"http://<gateway-ip>:8080/function/minio-webhook-hanlder"
+        }
+    }
+}
+```
+
+* Update minio config and restart mino server
+Update the mini config and restart minio server
+```sh
+mc admin config set minio-kube < myconfig.json
+```
+
+```sh
+mc admin service restart minio-kube
+```
+
+* Create buckets
+```sh
+mc mb minio-kube/images
+```
+```sh
+mc mb minio-kube/images-thumbnail
+```
+```sh
+mc mb minio-kube/inception
+```
+
+* Add event for the webhook
+```sh
+mc event add minio/images arn:minio:sqs::1:webhook --event put --suffix .jpg
+```
+
+* Change `images` bucket policy to public so that inception function can download the image without secret
+```sh
+mc policy public minio-kube/images
+```
+
 ### Docker swarm
 
 ##### Create minio secret and access key
@@ -86,130 +211,4 @@ mc event add minio/images arn:minio:sqs::1:webhook --event put --suffix .jpg
 ##### Change `images` bucket policy to public so that inception function can download the image without secret
 ```sh
 mc policy public minio/images
-```
-
-
-### Kubernetes
-
-#### Install Helm 
-
-##### Install Helm CLI Client
-
-* On Linux and Mac/Darwin
-```
-curl https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
-```
-
-* On Mac Via Homebrew 
-```
-brew install kubernetes-helm 
-```
-
-#### Install Tiller
-
-* Create RBAC permissions for tiller
-```
-kubectl -n kube-system create sa tiller \
-  && kubectl create clusterrolebinding tiller \
-  --clusterrole cluster-admin \
-  --serviceaccount=kube-system:tiller
-```
-
-* Install the server-side Tiller component on your cluster
-```
-helm init --skip-refresh --upgrade --service-account tiller
-```
-
-#### Install and Configure minio
-
-* Create OpenFaaS namespaces
-```
-kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
-```
-
-* Generate secrets for Minio
-```
-SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
-ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
-```
-
-* Create Secrets in kubernetes
-```
-kubectl create secret generic -n openfaas-fn \
- s3-secret-key --from-literal s3-secret-key="$SECRET_KEY"
-```
-
-```
-kubectl create secret generic -n openfaas-fn \
- s3-access-key --from-literal s3-access-key="$ACCESS_KEY"
-```
-
-* Install minio with helm chart
-```
-helm install --name cloud-minio \
-    --namespace openfaas \
-    --set accessKey=$ACCESS_KEY,
-            secretKey=$SECRET_KEY,
-            replicas=1,
-            persistence.enabled=false,
-            service.port=9000,
-            service.type=NodePort \
-    stable/minio
-```
-
-* Get Minio NodePort
-
-```
-MINIO_PORT=$(kubectl get svc/cloud-minio -n openfaas --output=jsonpath='{.spec.ports[?(@.name=="service")].nodePort}')
-``` 
-
-##### Configure minio client
-```sh
-mc config host add minio-kube http://127.0.0.1:$MINIO_PORT $ACCESS_KEY $SECRET_KEY
-```
-
-##### Get minio config and edit the JSON to add webhook handler
-```sh
-mc admin config get minio-kube > myconfig.json
-```
-edit webhook section of `myconfig.json` and save it
-```json
-"webhook":{
-    "1":{
-        "enable":true,
-        "endpoint":"http://<gateway-ip>:8080/function/minio-webhook-hanlder"
-        }
-    }
-}
-```
-
-##### Update minio config and restart mino server
-Update the mini config and restart minio server
-```sh
-mc admin config set minio-kube < myconfig.json
-```
-
-```sh
-mc admin service restart minio-kube
-```
-
-* Create buckets
-```sh
-mc mb minio-kube/images
-```
-```sh
-mc mb minio-kube/images-thumbnail
-```
-```sh
-mc mb minio-kube/inception
-```
-
-* Add event for the webhook
-```sh
-mc event add minio/images arn:minio:sqs::1:webhook --event put --suffix .jpg
-```
-
-* Change `images` bucket policy to public so that inception function can download the image without secret
-```sh
-mc policy public minio-kube/images
 ```
