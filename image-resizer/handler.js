@@ -48,7 +48,7 @@ module.exports = (context, callback) => {
                         callback(undefined, { status: "fail", message: err.toString() });
                     }
 
-                    callback(undefined, { status: "success", message: "Successfully resized and uploded" });
+                    callback(undefined, { status: "success", message: "Successfully resized and uploaded" });
                 });
         });
 }

@@ -52,7 +52,7 @@ func Handle(req []byte) string {
 		return err.Error()
 	}
 
-	return fmt.Sprintf("Hello, Go. You said: %s", string(requestBytes))
+	return fmt.Sprintf("Inception and Image Resizer are invoked asynchronously")
 }
 
 func invokeInception(bucket, objectKeystring string) error {
