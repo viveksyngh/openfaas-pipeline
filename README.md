@@ -5,13 +5,12 @@ Event driven pipeline using OpenFaaS, Minio and Tensorflow inception
 ![OpenFaaS Pipeline](https://github.com/viveksyngh/openfaas-pipeline/blob/master/media/openfaas-pipeline.jpg?raw=true)
 
 
-## Deploy minio and configure webhook
+## Kubernetes 
+For Kubernetes, first install Helm and Tiller
 
-### Kubernetes
+### Install Helm 
 
-#### Install Helm 
-
-##### Install Helm CLI Client
+#### Install Helm CLI Client
 
 * On Linux and Mac/Darwin
 ```
@@ -38,7 +37,41 @@ kubectl -n kube-system create sa tiller \
 helm init --skip-refresh --upgrade --service-account tiller
 ```
 
-#### Install and Configure minio
+### Install OpenFaaS on Kubernetes
+
+* Create OpenFaaS namespace 
+```sh
+kubectl apply -f https://raw.githubusercontent.com/openfaas/faas-netes/master/namespaces.yml
+```
+
+* Add OpenFaaS helm repository 
+```sh
+helm repo add openfaas https://openfaas.github.io/faas-netes/
+```
+
+* Create basic-auth credentials
+```sh
+PASSWORD=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
+```
+
+```sh
+kubectl -n openfaas create secret generic basic-auth \
+--from-literal=basic-auth-user=admin \
+--from-literal=basic-auth-password="$PASSWORD"
+```
+
+* Install OpenFaaS on kubernetes cluster
+```sh
+helm repo update \
+ && helm upgrade openfaas --install openfaas/openfaas \
+    --namespace openfaas  \
+    --set basic_auth=true \
+    --set functionNamespace=openfaas-fn \
+    --set operator.create=true
+
+```
+
+### Install and Configure minio
 
 * Create OpenFaaS namespaces
 ```
@@ -132,9 +165,23 @@ mc event add minio/images arn:minio:sqs::1:webhook --event put --suffix .jpg
 mc policy public minio-kube/images
 ```
 
+#### Deploy Functions
+
+```sh
+faas-cli deploy -f stack.kubernetes.yml
+```
+
 ### Docker swarm
 
-##### Create minio secret and access key
+### Install OpenFaaS
+```sh
+git clone https://www.github.com/openfaas/faas && \
+        cd faas && ./deploy_stack.sh
+```
+
+### Install and Configure minio
+
+* Create minio secret and access key
 ```sh
 SECRET_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
 ACCESS_KEY=$(head -c 12 /dev/urandom | shasum| cut -d' ' -f1)
@@ -143,7 +190,7 @@ echo -n "$SECRET_KEY" | docker secret create s3-secret-key -
 echo -n "$ACCESS_KEY" | docker secret create s3-access-key -
 ```
 
-##### Deploy minio to cluster
+* Deploy minio to cluster
 ```sh
 docker service create --constraint="node.role==manager" \
  --name minio \
@@ -157,17 +204,17 @@ docker service create --constraint="node.role==manager" \
 minio/minio:latest server /data
 ```
 
-##### Publish port `9000`
+* Publish port `9000`
 ```sh
 docker service update minio --publish-add 9000:9000
 ``` 
 
-##### Configure minio client
+* Configure minio client
 ```sh
 mc config host add minio http://127.0.0.1:9000 $ACCESS_KEY $SECRET_KEY
 ```
 
-##### Get minio config and edit the JSON to add webhook handler
+* Get minio config and edit the JSON to add webhook handler
 ```sh
 mc admin config get minio > myconfig.json
 ```
@@ -182,7 +229,7 @@ edit webhook section of `myconfig.json` and save it
 }
 ```
 
-##### Update minio config and restart mino server
+* Update minio config and restart mino server
 Update the mini config and restart minio server
 ```sh
 mc admin config set minio < myconfig.json
@@ -192,7 +239,7 @@ mc admin config set minio < myconfig.json
 mc admin service restart minio
 ```
 
-##### Create required buckets
+* Create required buckets
 ```sh
 mc mb minio/images
 ```
@@ -203,12 +250,18 @@ mc mb minio/images-thumbnail
 mc mb minio/inception
 ```
 
-##### Add event for the webhook
+* Add event for the webhook
 ```sh
 mc event add minio/images arn:minio:sqs::1:webhook --event put --suffix .jpg
 ```
 
-##### Change `images` bucket policy to public so that inception function can download the image without secret
+* Change `images` bucket policy to public so that inception function can download the image without secret
 ```sh
 mc policy public minio/images
+```
+
+#### Deploy Functions
+
+```sh
+faas-cli deploy -f stack.swarm.yml
 ```
