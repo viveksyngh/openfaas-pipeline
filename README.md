@@ -128,7 +128,7 @@ edit webhook section of `myconfig.json` and save it
 "webhook":{
     "1":{
         "enable":true,
-        "endpoint":"http://<gateway-ip>:8080/function/minio-webhook-hanlder"
+        "endpoint":"http://gateway.openfaas:8080/function/minio-webhook-hanlder"
         }
     }
 }
@@ -223,7 +223,7 @@ edit webhook section of `myconfig.json` and save it
 "webhook":{
     "1":{
         "enable":true,
-        "endpoint":"http://<gateway-ip>:8080/function/minio-webhook-hanlder"
+        "endpoint":"http://gateway:8080/function/minio-webhook-hanlder"
         }
     }
 }
