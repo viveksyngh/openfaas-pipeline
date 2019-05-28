@@ -1,0 +1,34 @@
+provider:
+  name: faas
+  gateway: http://127.0.0.1:8080
+
+functions:
+  image-resizer:
+    lang: node
+    handler: ./image-resizer
+    image: viveksyngh/image-resizer:latest
+    secrets:
+      - s3-access-key
+      - s3-secret-key
+    environment:
+      combine_output: false
+      s3_url: cloud-minio.openfaas.svc.cluster.local
+  json-uploader:
+    lang: go
+    handler: ./json-uploader
+    image: viveksyngh/json-uploader:latest
+    secrets:
+      - s3-access-key
+      - s3-secret-key
+    environment:
+      s3_url: cloud-minio.openfaas.svc.cluster.local:9000
+      bucket: "inception"
+  minio-webhook-hanlder:
+    lang: go
+    handler: ./minio-webhook-hanlder
+    image: viveksyngh/minio-webhook-hanlder:latest
+    environment:
+      combine_output: false
+      gateway_url: gateway.openfaas:8080
+      s3_url: cloud-minio.openfaas.svc.cluster.local:9000
+
