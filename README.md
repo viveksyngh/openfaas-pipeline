@@ -171,7 +171,7 @@ mc policy public minio-kube/images
 faas-cli deploy -f stack.kubernetes.yml
 ```
 
-### Docker swarm
+## Docker swarm
 
 ### Install OpenFaaS
 ```sh
