@@ -99,13 +99,7 @@ kubectl create secret generic -n openfaas-fn \
 ```
 helm install --name cloud-minio \
     --namespace openfaas \
-    --set accessKey=$ACCESS_KEY,
-            secretKey=$SECRET_KEY,
-            replicas=1,
-            persistence.enabled=false,
-            service.port=9000,
-            service.type=NodePort \
-    stable/minio
+    --set accessKey=$ACCESS_KEY,secretKey=$SECRET_KEY,replicas=1,persistence.enabled=false,service.port=9000,service.type=NodePort stable/minio
 ```
 
 * Get Minio NodePort
@@ -157,7 +151,7 @@ mc mb minio-kube/inception
 
 * Add event for the webhook
 ```sh
-mc event add minio/images arn:minio:sqs::1:webhook --event put --suffix .jpg
+mc event add minio-kube/images arn:minio:sqs::1:webhook --event put --suffix .jpg
 ```
 
 * Change `images` bucket policy to public so that inception function can download the image without secret
@@ -167,6 +161,12 @@ mc policy public minio-kube/images
 
 #### Deploy Functions
 
+* Login with faas-cli
+```sh
+faas-cli login -u admin -p $PASSWORD -g http://127.0.0.1:31112
+```
+
+* Deploy functions
 ```sh
 faas-cli deploy -f stack.kubernetes.yml
 ```
@@ -262,6 +262,12 @@ mc policy public minio/images
 
 #### Deploy Functions
 
+* Login with faas-cli
+```sh
+faas-cli login -u admin -p $PASSWORD -g http://127.0.0.1:31112
+```
+
+* Deploy functions
 ```sh
 faas-cli deploy -f stack.swarm.yml
 ```
