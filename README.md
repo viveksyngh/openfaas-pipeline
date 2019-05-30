@@ -71,6 +71,22 @@ helm repo update \
 
 ```
 
+### Install Minio Client
+
+* MacOS
+
+```sh
+brew install minio/stable/mc
+```
+
+* Linux
+
+```sh
+wget https://dl.min.io/client/mc/release/linux-amd64/mc
+chmod +x mc
+```
+
+
 ### Install and Configure minio
 
 * Create OpenFaaS namespaces
