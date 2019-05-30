@@ -6,7 +6,7 @@ functions:
   image-resizer:
     lang: node
     handler: ./image-resizer
-    image: viveksyngh/image-resizer:latest
+    image: viveksyngh/image-resizer:0.1.0
     secrets:
       - s3-access-key
       - s3-secret-key
@@ -17,7 +17,7 @@ functions:
   json-uploader:
     lang: go
     handler: ./json-uploader
-    image: viveksyngh/json-uploader:latest
+    image: viveksyngh/json-uploader:0.1.0
     secrets:
       - s3-access-key
       - s3-secret-key
@@ -27,7 +27,7 @@ functions:
   minio-webhook-hanlder:
     lang: go
     handler: ./minio-webhook-hanlder
-    image: viveksyngh/minio-webhook-hanlder:latest
+    image: viveksyngh/minio-webhook-hanlder:0.1.0
     environment:
       combine_output: false
       gateway_url: gateway.openfaas:8080
