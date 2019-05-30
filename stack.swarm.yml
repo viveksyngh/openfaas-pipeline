@@ -13,7 +13,7 @@ functions:
     environment:
       combine_output: false
       s3_url: minio
-      port: 9000
+      minio_port: 9000
   json-uploader:
     lang: go
     handler: ./json-uploader

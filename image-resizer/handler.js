@@ -5,7 +5,7 @@ var sharp = require('sharp');
 var fs = require("fs");
 
 var endpoint = process.env.s3_url || "minio";
-var port = process.env.port || 9000;
+var port = process.env.minio_port || 9000;
 var secretPath = process.env.secret_path || "/var/openfaas/secrets/";
 var accessKey = fs.readFileSync(secretPath + "s3-access-key").toString();
 var secretKey = fs.readFileSync(secretPath + "s3-secret-key").toString();
